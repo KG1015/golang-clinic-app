@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Clinic Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+      background: #f7f7f7;
+    }
+    .dashboard-container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      max-width: 400px;
+      margin: 3em auto;
+      padding: 2.5em 2em 2em 2em;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 1.5em;
+      font-size: 2em;
+      font-weight: bold;
+    }
+    h2 {
+      color: #2980b9;
+      margin-bottom: 1em;
+      text-align: center;
+      font-size: 1.3em;
+    }
+    #user-info {
+      background: #ecf0f1;
+      padding: 1em;
+      border-radius: 6px;
+      margin-bottom: 2em;
+      text-align: center;
+      font-size: 1.1em;
+      color: #34495e;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.5em;
+      margin: 0.5em 0 1em 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 1em;
+    }
+    button {
+      width: 100%;
+      padding: 0.7em;
+      background: #2980b9;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 1em;
+    }
+    button:hover {
+      background: #1c5980;
+    }
+    .logout-btn {
+      background: #c0392b;
+      margin-top: 1em;
+    }
+    .logout-btn:hover {
+      background: #922b21;
+    }
+    ul#patients-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 1em;
+    }
+    ul#patients-list li {
+      background: #ecf0f1;
+      margin-bottom: 0.5em;
+      padding: 0.5em;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .delete-btn {
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.3em 0.7em;
+      cursor: pointer;
+      margin-left: 10px;
+      font-size: 0.95em;
+      transition: background 0.2s;
+    }
+    .delete-btn:hover {
+      background: #922b21;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <h1>Welcome to the Clinic Dashboard!</h1>
+    <div id="user-info"></div>
+
+    <h2>Create Patient</h2>
+    <input id="pat-name" placeholder="Name">
+    <input id="pat-age" type="number" placeholder="Age">
+    <select id="pat-gender">
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+      <option value="Other">Other</option>
+    </select>
+    <button onclick="createPatient()">Create Patient</button>
+
+    <h2>Patients</h2>
+    <button onclick="getPatients()">Get Patients</button>
+    <ul id="patients-list"></ul>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+  <script>
+    // Get user info from localStorage
+    const name = localStorage.getItem('name');
+    const role = localStorage.getItem('role');
+    const token = localStorage.getItem('token');
+    document.getElementById('user-info').textContent = `Logged in as: ${name} (${role})`;
+
+    function showMsg(msg) {
+      alert(msg);
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = '/static/index.html';
+    }
+
+    function createPatient() {
+      fetch('/api/patients', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({
+          name: document.getElementById('pat-name').value,
+          age: Number(document.getElementById('pat-age').value),
+          gender: document.getElementById('pat-gender').value
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          showMsg(data.error);
+        } else {
+          showMsg("Patient created successfully!");
+          getPatients(); // Refresh the list
+        }
+      });
+    }
+
+    function getPatients() {
+      fetch('/api/patients', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const ul = document.getElementById('patients-list');
+        ul.innerHTML = "";
+        if (Array.isArray(data)) {
+          if (data.length === 0) {
+            ul.innerHTML = "<li>No patients found.</li>";
+          } else {
+            data.forEach(p => {
+              const li = document.createElement('li');
+              li.textContent = p.Name + " (" + p.Age + ", " + p.Gender + ")";
+              // Add Delete button
+              const delBtn = document.createElement('button');
+              delBtn.textContent = "Delete";
+              delBtn.className = "delete-btn";
+              delBtn.onclick = function() { deletePatient(p.ID || p.Id || p.id); };
+              li.appendChild(delBtn);
+              ul.appendChild(li);
+            });
+          }
+        } else {
+          showMsg(data.error || JSON.stringify(data));
+        }
+      });
+    }
+
+    function deletePatient(id) {
+      if (!confirm("Are you sure you want to delete this patient?")) return;
+      fetch('/api/patients/' + id, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          showMsg(data.error);
+        } else {
+          showMsg("Patient deleted successfully!");
+          getPatients();
+        }
+      });
+    }
+  </script>
+</body>
+</html>

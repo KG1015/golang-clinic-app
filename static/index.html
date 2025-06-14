@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Clinic App Frontend</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+      background: #f7f7f7;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .section {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 1.5em 2em 2em 2em;
+      margin: 2em auto;
+      max-width: 350px;
+    }
+    .section h2 {
+      color: #2980b9;
+      margin-bottom: 1em;
+      text-align: center;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.5em;
+      margin: 0.5em 0 1em 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 1em;
+    }
+    button {
+      width: 100%;
+      padding: 0.7em;
+      background: #2980b9;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #1c5980;
+    }
+    ul#patients-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 1em;
+    }
+    ul#patients-list li {
+      background: #ecf0f1;
+      margin-bottom: 0.5em;
+      padding: 0.5em;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Clinic App Frontend</h1>
+
+  <div class="section">
+    <h2>Register</h2>
+    <input id="reg-name" placeholder="Name">
+    <input id="reg-email" placeholder="Email">
+    <input id="reg-password" type="password" placeholder="Password">
+    <select id="reg-role">
+      <option value="receptionist">Receptionist</option>
+      <option value="doctor">Doctor</option>
+    </select>
+    <button onclick="register()">Register</button>
+  </div>
+
+  <div class="section">
+    <h2>Login</h2>
+    <input id="login-email" placeholder="Email">
+    <input id="login-password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <script>
+    let token = "";
+
+    function showMsg(msg) {
+      alert(msg);
+    }
+
+    function register() {
+      fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById('reg-name').value,
+          email: document.getElementById('reg-email').value,
+          password: document.getElementById('reg-password').value,
+          role: document.getElementById('reg-role').value
+        })
+      })
+      .then(res => res.json())
+      .then(data => showMsg(data.message || JSON.stringify(data)));
+    }
+
+    function login() {
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('login-email').value,
+          password: document.getElementById('login-password').value
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          token = data.token;
+          // Store token and user info in localStorage
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('name', data.name);
+          localStorage.setItem('role', data.role);
+          // Redirect to dashboard
+          window.location.href = '/static/dashboard.html';
+        } else {
+          showMsg(data.error || JSON.stringify(data));
+        }
+      });
+    }
+
+    function getPatients() {
+      // Use token from localStorage if available
+      const authToken = token || localStorage.getItem('token') || "";
+      fetch('/api/patients', {
+        headers: { 'Authorization': 'Bearer ' + authToken }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const ul = document.getElementById('patients-list');
+          ul.innerHTML = "";
+          data.forEach(p => {
+            const li = document.createElement('li');
+            li.textContent = p.name + " (" + p.age + ", " + p.gender + ")";
+            ul.appendChild(li);
+          });
+          showMsg("Fetched patients successfully!");
+        } else {
+          showMsg(data.error || JSON.stringify(data));
+        }
+      });
+    }
+  </script>
+</body>
+</html>
