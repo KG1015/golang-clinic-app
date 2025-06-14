@@ -124,7 +124,7 @@
           localStorage.setItem('token', data.token);
           localStorage.setItem('name', data.name);
           localStorage.setItem('role', data.role);
-          window.location.href = '/static/dashboard.html';
+          window.location.href = 'dashboard.html'; // ✅ updated
         } else {
           showMsg("Unexpected response: " + JSON.stringify(data));
         }
