@@ -103,7 +103,8 @@
         } else {
           showMsg("Registration successful! Please login.");
         }
-      });
+      })
+      .catch(err => showMsg("Something went wrong during registration."));
     }
 
     function login() {
@@ -124,11 +125,12 @@
           localStorage.setItem('token', data.token);
           localStorage.setItem('name', data.name);
           localStorage.setItem('role', data.role);
-          window.location.href = 'dashboard.html'; // ✅ updated
+          window.location.href = './dashboard.html'; 
         } else {
           showMsg("Unexpected response: " + JSON.stringify(data));
         }
-      });
+      })
+      .catch(err => showMsg("Something went wrong during login."));
     }
   </script>
 </body>
