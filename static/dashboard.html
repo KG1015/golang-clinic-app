@@ -4,13 +4,94 @@
   <meta charset="UTF-8">
   <title>Clinic Dashboard</title>
   <style>
-    /* You can include your dashboard styles here */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+      background: #f7f7f7;
+    }
+
+    .dashboard-container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      max-width: 600px;
+      margin: 2em auto;
+      padding: 2em;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.5em;
+      margin: 0.5em 0 1em 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 1em;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.7em;
+      background: #2980b9;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 1em;
+    }
+
+    button:hover {
+      background: #1c5980;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #ecf0f1;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+
+    .logout-btn {
+      background-color: #7f8c8d;
+    }
+
+    .logout-btn:hover {
+      background-color: #5f6a6a;
+    }
   </style>
 </head>
 <body>
   <div class="dashboard-container">
     <h1>Welcome to the Clinic Dashboard!</h1>
-    <div id="user-info"></div>
+    <div id="user-info" style="margin-bottom: 1.5em; text-align: center;"></div>
 
     <h2>Create Patient</h2>
     <input id="pat-name" placeholder="Name">
@@ -25,8 +106,10 @@
     <h2>Patients</h2>
     <button onclick="getPatients()">Get Patients</button>
     <ul id="patients-list"></ul>
+
     <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
+
   <script>
     const name = localStorage.getItem('name');
     const role = localStorage.getItem('role');
@@ -39,7 +122,7 @@
 
     function logout() {
       localStorage.clear();
-      window.location.href = 'index.html'; // ✅ updated
+      window.location.href = 'index.html';
     }
 
     function createPatient() {
@@ -80,11 +163,11 @@
           } else {
             data.forEach(p => {
               const li = document.createElement('li');
-              li.textContent = p.Name + " (" + p.Age + ", " + p.Gender + ")";
+              li.textContent = `${p.Name} (${p.Age}, ${p.Gender})`;
               const delBtn = document.createElement('button');
               delBtn.textContent = "Delete";
               delBtn.className = "delete-btn";
-              delBtn.onclick = function() { deletePatient(p.ID || p.Id || p.id); };
+              delBtn.onclick = () => deletePatient(p.ID || p.Id || p.id);
               li.appendChild(delBtn);
               ul.appendChild(li);
             });
